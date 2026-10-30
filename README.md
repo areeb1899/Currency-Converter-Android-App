@@ -1,6 +1,6 @@
 # Currency Converter ⚡💱
 ### Ultra-Lightweight & Highly Responsive React Native Currency Converter
-**Developer**: Areeb Ahmed
+**Developer**: Areeb Ahmed | **Version**: 1.1
 
 Currency Converter is an ultra-fast, modern currency converter built with **React Native & Expo**, engineered specifically for **minimum app size**, instant responsiveness, and a clean, distraction-free interface.
 

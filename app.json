@@ -2,7 +2,7 @@
   "expo": {
     "name": "Currency Converter",
     "slug": "currency-converter",
-    "version": "1.0.0",
+    "version": "1.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
@@ -18,9 +18,18 @@
       },
       "package": "com.currencyconverter.app"
     },
+    "androidStatusBar": {
+      "translucent": true,
+      "backgroundColor": "transparent"
+    },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b9eac2d1-fc29-40a7-bfc1-c1b3efc1a6ec"
+      }
     }
   }
 }

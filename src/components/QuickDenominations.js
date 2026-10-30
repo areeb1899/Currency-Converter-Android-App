@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { convertCurrency } from '../utils/calculations';
-import { formatConvertedValue } from '../utils/formatters';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { convertCurrency, getExchangeRate } from '../utils/calculations';
+import { formatConvertedValue, formatRatePrecision } from '../utils/formatters';
+import { Icon } from './Icons';
 
 export function QuickDenominations({
   theme,
@@ -9,13 +10,24 @@ export function QuickDenominations({
   toCurrency,
   rates,
   onSelectAmount,
+  fullScreen = false,
+  onSwap,
 }) {
-  const steps = [1, 5, 10, 20, 50, 100];
+  const [reverseMode, setReverseMode] = useState(false);
 
-  return (
+  const activeFrom = reverseMode ? toCurrency : fromCurrency;
+  const activeTo = reverseMode ? fromCurrency : toCurrency;
+
+  const steps = fullScreen
+    ? [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
+    : [1, 5, 10, 20, 50, 100];
+
+  const rate = getExchangeRate(activeFrom.code, activeTo.code, rates);
+
+  const content = (
     <View
       style={[
-        styles.container,
+        fullScreen ? styles.fullContainer : styles.cardContainer,
         {
           backgroundColor: theme.surface,
           borderColor: theme.border,
@@ -23,17 +35,31 @@ export function QuickDenominations({
       ]}
     >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>
-          Traveler Cheat Sheet
-        </Text>
-        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          Tap any row to set amount
-        </Text>
+        <View style={styles.headerLeft}>
+          <Text style={[styles.title, { color: theme.textPrimary }]}>
+            Traveler Cheat Sheet
+          </Text>
+          <Text style={[styles.rateSubtitle, { color: theme.textSecondary }]}>
+            1 {activeFrom.code} = {formatRatePrecision(rate)} {activeTo.code}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.flipBtn, { backgroundColor: theme.surfaceElevated }]}
+          onPress={() => setReverseMode((prev) => !prev)}
+          activeOpacity={0.7}
+          accessibilityLabel="Flip denomination direction"
+        >
+          <Icon name="swap" size={14} color={theme.textPrimary} />
+          <Text style={[styles.flipBtnText, { color: theme.textSecondary }]}>
+            Flip
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.grid}>
         {steps.map((amount) => {
-          const converted = convertCurrency(amount, fromCurrency.code, toCurrency.code, rates);
+          const converted = convertCurrency(amount, activeFrom.code, activeTo.code, rates);
           return (
             <TouchableOpacity
               key={amount}
@@ -47,12 +73,12 @@ export function QuickDenominations({
               activeOpacity={0.65}
             >
               <Text style={[styles.fromText, { color: theme.textSecondary }]}>
-                {fromCurrency.symbol || ''}
-                {amount} {fromCurrency.code}
+                {activeFrom.symbol || ''}
+                {amount} {activeFrom.code}
               </Text>
               <Text style={[styles.arrowText, { color: theme.primary }]}>→</Text>
               <Text style={[styles.toText, { color: theme.textPrimary }]}>
-                {toCurrency.symbol || ''}
+                {activeTo.symbol || ''}
                 {formatConvertedValue(converted)}
               </Text>
             </TouchableOpacity>
@@ -61,28 +87,72 @@ export function QuickDenominations({
       </View>
     </View>
   );
+
+  if (fullScreen) {
+    return (
+      <ScrollView
+        style={styles.fullScreenScroll}
+        contentContainerStyle={styles.fullScreenScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {content}
+      </ScrollView>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({
-  container: {
+  cardContainer: {
     marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
   },
+  fullContainer: {
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+  },
+  fullScreenScroll: {
+    flex: 1,
+  },
+  fullScreenScrollContent: {
+    paddingBottom: 24,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+  },
+  headerLeft: {
+    flex: 1,
   },
   title: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
   },
-  subtitle: {
+  rateSubtitle: {
     fontSize: 11,
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  flipBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  flipBtnText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   grid: {
     flexDirection: 'row',
@@ -94,9 +164,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 10,
-    borderRadius: 10,
+    borderRadius: 12,
   },
   fromText: {
     fontSize: 12,
@@ -111,4 +181,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-

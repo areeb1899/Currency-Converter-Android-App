@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Image } from 'react-native';
 import { Icon } from './Icons';
 import { formatRelativeTime } from '../utils/formatters';
 
@@ -36,15 +36,20 @@ export function Header({
     <View style={[styles.container, { borderBottomColor: theme.borderLight }]}>
       <View style={styles.titleContainer}>
         <View style={styles.brandRow}>
-          <Text style={[styles.title, { color: theme.textPrimary }]}>Currency</Text>
-          <Text style={[styles.titleHighlight, { color: theme.primary }]}>Converter</Text>
-        </View>
+          <Image
+            source={require('../../assets/app-logo.png')}
+            style={styles.appLogo}
+            resizeMode="contain"
+          />
+          <View style={styles.metaContainer}>
+            <View style={styles.titleTextRow}>
+              <Text style={[styles.title, { color: theme.textPrimary }]}>Currency</Text>
+              <Text style={[styles.titleHighlight, { color: theme.primary }]}>Converter</Text>
+            </View>
 
-        {/* <View style={styles.devRow}>
-          <Text style={[styles.devLabel, { color: theme.textSecondary }]}>
-            Developer: <Text style={[styles.devName, { color: theme.primary }]}>Areeb Ahmed</Text>
-          </Text>
-        </View> */}
+           
+          </View>
+        </View>
 
         <View style={styles.statusRow}>
           <View
@@ -86,7 +91,7 @@ export function Header({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 14,
     flexDirection: 'row',
@@ -101,19 +106,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  appLogo: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  metaContainer: {
+    flex: 1,
+  },
+  titleTextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     letterSpacing: -0.5,
   },
   titleHighlight: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     letterSpacing: -0.5,
-    marginLeft: 5,
+    marginLeft: 4,
   },
   devRow: {
-    marginTop: 2,
+    marginTop: 1,
   },
   devLabel: {
     fontSize: 11,
@@ -122,10 +140,15 @@ const styles = StyleSheet.create({
   devName: {
     fontWeight: '700',
   },
+  versionBadge: {
+    fontSize: 10,
+    fontWeight: '600',
+  },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 3,
+    marginTop: 4,
+    marginLeft: 48, // aligns with text past logo
   },
   statusDot: {
     width: 6,

@@ -1,16 +1,15 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
   Text,
-  SafeAreaView,
   ScrollView,
   RefreshControl,
   StatusBar,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { COLORS } from './src/constants/theme';
 import { CURRENCIES, CURRENCY_MAP } from './src/constants/currencies';
@@ -24,9 +23,16 @@ import { CurrencyCard } from './src/components/CurrencyCard';
 import { SwapButton } from './src/components/SwapButton';
 import { Keypad } from './src/components/Keypad';
 import { QuickDenominations } from './src/components/QuickDenominations';
+import { RatesBoard } from './src/components/RatesBoard';
+import { NavigationBar } from './src/components/NavigationBar';
 import { CurrencyPickerModal } from './src/components/CurrencyPickerModal';
 
-export default function App() {
+function MainApp() {
+  const insets = useSafeAreaInsets();
+
+  // Navigation Tab State
+  const [activeTab, setActiveTab] = useState('converter'); // 'converter' | 'cheatsheet' | 'rates'
+
   // Theme State
   const [themeMode, setThemeMode] = useState('dark');
   const isDark = themeMode === 'dark';
@@ -34,7 +40,7 @@ export default function App() {
 
   // Currency & Rate State
   const [fromCurrency, setFromCurrency] = useState(CURRENCY_MAP.USD || CURRENCIES[0]);
-  const [toCurrency, setToCurrency] = useState(CURRENCY_MAP.INR || CURRENCY_MAP.EUR || CURRENCIES[1]);
+  const [toCurrency, setToCurrency] = useState(CURRENCY_MAP.INR || CURRENCIES[4]);
   const [amount, setAmount] = useState('1');
   const [rates, setRates] = useState(FALLBACK_RATES);
   const [ratesDate, setRatesDate] = useState(FALLBACK_DATE);
@@ -179,12 +185,30 @@ export default function App() {
     }
   };
 
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    if (newTab !== 'converter') {
+      setIsKeypadOpen(false);
+    }
+  };
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <ExpoStatusBar style={isDark ? 'light' : 'dark'} />
+    <View
+      style={[
+        styles.fullScreenRoot,
+        {
+          backgroundColor: theme.background,
+          paddingTop: insets.top,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        },
+      ]}
+    >
+      <ExpoStatusBar style={isDark ? 'light' : 'dark'} translucent />
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.background}
+        backgroundColor="transparent"
+        translucent
       />
 
       {/* Top Header */}
@@ -198,75 +222,123 @@ export default function App() {
         onRefresh={handleReload}
       />
 
-      {/* Main Content Area */}
-      <ScrollView
-        style={styles.scrollArea}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        onScroll={handleScroll}
-        onScrollBeginDrag={() => {
-          if (isKeypadOpen) {
-            setIsKeypadOpen(false);
-          }
-        }}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleReload}
-            tintColor={theme.primary}
-            colors={[theme.primary]}
-          />
-        }
-      >
-        {/* Currency Conversion Cards */}
-        <View style={styles.converterSection}>
-          <CurrencyCard
-            theme={theme}
-            type="from"
-            currency={fromCurrency}
-            amount={amount}
-            onOpenPicker={() => handleOpenPickerFor('from')}
-            onQuickAdd={handleQuickAdd}
-            onResetAmount={handleResetAmount}
-            onCardPress={() => setIsKeypadOpen(true)}
-            isInputActive={isKeypadOpen}
-          />
+      {/* Content Area Based on Active Navigation Tab */}
+      <View style={styles.bodyContainer}>
+        {activeTab === 'converter' && (
+          <View style={styles.tabViewWrapper}>
+            <ScrollView
+              style={styles.scrollArea}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              onScroll={handleScroll}
+              onScrollBeginDrag={() => {
+                if (isKeypadOpen) {
+                  setIsKeypadOpen(false);
+                }
+              }}
+              scrollEventThrottle={16}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleReload}
+                  tintColor={theme.primary}
+                  colors={[theme.primary]}
+                />
+              }
+            >
+              {/* Currency Conversion Cards */}
+              <View style={styles.converterSection}>
+                <CurrencyCard
+                  theme={theme}
+                  type="from"
+                  currency={fromCurrency}
+                  amount={amount}
+                  onOpenPicker={() => handleOpenPickerFor('from')}
+                  onQuickAdd={handleQuickAdd}
+                  onResetAmount={handleResetAmount}
+                  onCardPress={() => setIsKeypadOpen(true)}
+                  isInputActive={isKeypadOpen}
+                />
 
-          <SwapButton theme={theme} onSwap={handleSwapCurrencies} />
+                <SwapButton theme={theme} onSwap={handleSwapCurrencies} />
 
-          <CurrencyCard
-            theme={theme}
-            type="to"
-            currency={toCurrency}
-            convertedValue={convertedValue}
-            rate={directRate}
-            onOpenPicker={() => handleOpenPickerFor('to')}
-          />
-        </View>
+                <CurrencyCard
+                  theme={theme}
+                  type="to"
+                  currency={toCurrency}
+                  convertedValue={convertedValue}
+                  rate={directRate}
+                  onOpenPicker={() => handleOpenPickerFor('to')}
+                />
+              </View>
 
-        {/* Traveler Cheat Sheet Matrix */}
-        <QuickDenominations
-          theme={theme}
-          fromCurrency={fromCurrency}
-          toCurrency={toCurrency}
-          rates={rates}
-          onSelectAmount={(val) => {
-            setAmount(val);
-            StorageService.saveUserPreferences({ lastAmount: val });
-          }}
-        />
+              {/* Traveler Cheat Sheet Matrix Preview */}
+              <QuickDenominations
+                theme={theme}
+                fromCurrency={fromCurrency}
+                toCurrency={toCurrency}
+                rates={rates}
+                onSelectAmount={(val) => {
+                  setAmount(val);
+                  StorageService.saveUserPreferences({ lastAmount: val });
+                }}
+              />
 
-        {/* Developer Footer Attribution */}
-        <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: theme.textMuted }]}>
-            Developed by <Text style={[styles.footerAuthor, { color: theme.primary }]}>Areeb Ahmed</Text>
-          </Text>
-        </View>
-      </ScrollView>
+              {/* Developer Footer Attribution */}
+              <View style={styles.footer}>
+                <Text style={[styles.footerText, { color: theme.textMuted }]}>
+                  Developed by <Text style={[styles.footerAuthor, { color: theme.primary }]}>Areeb Ahmed</Text> • v1.1
+                </Text>
+              </View>
+            </ScrollView>
 
-      {/* Docked Numeric Keypad with smooth animation */}
-      <Keypad theme={theme} onKeyPress={handleKeypadPress} isOpen={isKeypadOpen} />
+            {/* Docked Numeric Keypad with smooth animation */}
+            <Keypad theme={theme} onKeyPress={handleKeypadPress} isOpen={isKeypadOpen} />
+          </View>
+        )}
+
+        {activeTab === 'cheatsheet' && (
+          <View style={styles.tabViewWrapper}>
+            <QuickDenominations
+              theme={theme}
+              fromCurrency={fromCurrency}
+              toCurrency={toCurrency}
+              rates={rates}
+              fullScreen={true}
+              onSelectAmount={(val) => {
+                setAmount(val);
+                StorageService.saveUserPreferences({ lastAmount: val });
+                setActiveTab('converter');
+              }}
+              onSwap={handleSwapCurrencies}
+            />
+          </View>
+        )}
+
+        {activeTab === 'rates' && (
+          <View style={styles.tabViewWrapper}>
+            <RatesBoard
+              theme={theme}
+              baseCurrency={fromCurrency}
+              amount={amount}
+              rates={rates}
+              onSelectCurrency={(selected) => {
+                setToCurrency(selected);
+                StorageService.saveUserPreferences({ toCurrency: selected.code });
+                setActiveTab('converter');
+              }}
+            />
+          </View>
+        )}
+      </View>
+
+      {/* Full-Screen Edge-to-Edge Navigation Bar */}
+      <NavigationBar
+        theme={theme}
+        activeTab={activeTab}
+        onSelectTab={handleTabChange}
+        bottomInset={insets.bottom}
+      />
 
       {/* Currency Selector Modal */}
       <CurrencyPickerModal
@@ -282,14 +354,27 @@ export default function App() {
         }
         theme={theme}
       />
-    </SafeAreaView>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <MainApp />
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  fullScreenRoot: {
     flex: 1,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
+  },
+  bodyContainer: {
+    flex: 1,
+  },
+  tabViewWrapper: {
+    flex: 1,
   },
   scrollArea: {
     flex: 1,

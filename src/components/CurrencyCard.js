@@ -100,7 +100,7 @@ export function CurrencyCard({
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.quickAddScroll}
         >
-          {[10, 50, 100, 500, 1000].map((step) => (
+          {[10, 100, 500, 1000].map((step) => (
             <TouchableOpacity
               key={step}
               style={[styles.quickChip, { backgroundColor: theme.surfaceElevated }]}

@@ -1,5 +1,5 @@
 import React from 'react';
-import Svg, { Path, Circle, Polyline, Line } from 'react-native-svg';
+import Svg, { Path, Circle, Polyline, Line, Rect } from 'react-native-svg';
 
 export function Icon({ name, size = 20, color = '#FFFFFF', style }) {
   switch (name) {
@@ -227,6 +227,42 @@ export function Icon({ name, size = 20, color = '#FFFFFF', style }) {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+          />
+        </Svg>
+      );
+
+    case 'globe':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+          <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth="2.2" />
+          <Line x1="2" y1="12" x2="22" y2="12" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+          <Path
+            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+            stroke={color}
+            strokeWidth="2.2"
+          />
+        </Svg>
+      );
+
+    case 'calculator':
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={style}>
+          <Rect
+            x="4"
+            y="2"
+            width="16"
+            height="20"
+            rx="2"
+            stroke={color}
+            strokeWidth="2.2"
+          />
+          <Line x1="8" y1="6" x2="16" y2="6" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+          <Line x1="16" y1="14" x2="16" y2="18" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+          <Path
+            d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01"
+            stroke={color}
+            strokeWidth="2.5"
+            strokeLinecap="round"
           />
         </Svg>
       );
